@@ -14,12 +14,12 @@ class TestRoutes(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.author = User.objects.create(username='Автор')
-        cls.user_1 = User.objects.create(username='Пользователь_1')
+        cls.user_1 = User.objects.create(username='Автор')
+        cls.user_2 = User.objects.create(username='Пользователь_1')
         cls.note = Note.objects.create(
             title='Заголовок',
             text='Текст',
-            author=cls.author
+            author=cls.user_1
         )
 
     def test_pages_availability(self):
@@ -56,7 +56,7 @@ class TestRoutes(TestCase):
 
     def test_availability_for_authorized_users(self):
         """Страницы list, add, detail доступны авторизованному пользователю."""
-        self.client.force_login(self.author)
+        self.client.force_login(self.user_1)
         urls = (
             ('notes:list', None),
             ('notes:add', None),
@@ -71,8 +71,8 @@ class TestRoutes(TestCase):
     def test_availability_for_notes_edit_and_delete(self):
         """Проверка доступа к edit/delete для разных пользователей."""
         users_statuses = (
-            (self.author, HTTPStatus.OK),
-            (self.user_1, HTTPStatus.NOT_FOUND),
+            (self.user_1, HTTPStatus.OK),
+            (self.user_2, HTTPStatus.NOT_FOUND),
         )
         urls = (
             'notes:edit',
