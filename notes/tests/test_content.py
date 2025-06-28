@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 from notes.models import Note
 from notes.forms import NoteForm
 
+
 User = get_user_model()
 
 
