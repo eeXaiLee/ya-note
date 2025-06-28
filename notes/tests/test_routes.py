@@ -85,3 +85,16 @@ class TestRoutes(TestCase):
                     url = reverse(name, args=(self.note.slug,))
                     response = self.client.get(url)
                     self.assertEqual(response.status_code, status)
+
+    def test_success_page_available_for_authorized_user(self):
+        """Страница выполнения доступна авторизованному пользователю."""
+        self.client.force_login(self.user_1)
+        response = self.client.get(reverse('notes:success'))
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
+    def test_redirect_to_success_after_note_creation(self):
+        login_url = reverse('users:login')
+        success_url = reverse('notes:success')
+        redirect_url = f'{login_url}?next={success_url}'
+        response = self.client.get(success_url)
+        self.assertRedirects(response, redirect_url)
