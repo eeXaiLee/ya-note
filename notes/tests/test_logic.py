@@ -50,3 +50,37 @@ class TestNoteLogic(TestCase):
         response = self.client.post(url)
         self.assertRedirects(response, reverse('notes:success'))
         self.assertFalse(Note.objects.filter(pk=self.note.pk).exists())
+
+    def test_anonymous_user_cannot_create_note(self):
+        """Анонимный пользователь не может создать заметку."""
+        url = reverse('notes:add')
+        form_data = {
+            'title': 'Анонимная заметка',
+            'text': 'Текст',
+            'slug': 'anon-note'
+        }
+        response = self.client.post(url, data=form_data)
+        login_url = reverse('users:login')
+        self.assertRedirects(response, f'{login_url}?next={url}')
+        self.assertFalse(Note.objects.filter(slug='anon-note').exists())
+
+    def test_other_user_cannot_edit_someone_elses_note(self):
+        """Авторизованный пользователь не может редактировать чужую заметку."""
+        self.client.force_login(self.user_2)
+        url = reverse('notes:edit', args=(self.note.slug,))
+        response = self.client.post(url, data={
+            'title': 'Попытка взлома',
+            'text': 'Новый текст',
+            'slug': 'test-note'
+        })
+        self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
+        self.note.refresh_from_db()
+        self.assertNotEqual(self.note.text, 'Новый текст')
+
+    def test_other_user_cannot_delete_someone_elses_note(self):
+        """Авторизованный пользователь не может удалить чужую заметку."""
+        self.client.force_login(self.user_2)
+        url = reverse('notes:delete', args=(self.note.slug,))
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
+        self.assertTrue(Note.objects.filter(pk=self.note.pk).exists())
