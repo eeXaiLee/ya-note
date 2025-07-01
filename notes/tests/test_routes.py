@@ -92,6 +92,7 @@ class TestRoutes(TestCase):
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_redirect_for_anonymous_user_from_success_page(self):
+        """Анонимный пользователь перенаправляется со страницы выполнения."""
         login_url = reverse('users:login')
         success_url = reverse('notes:success')
         redirect_url = f'{login_url}?next={success_url}'
